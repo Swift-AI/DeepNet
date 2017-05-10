@@ -154,7 +154,9 @@ kernel void tanhForward(const device float* input [[ buffer(0) ]],
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
             int idx = (gidIn.y + row) * width + gidIn.x + col;
-            output[idx] = tanh(output[idx] + bi[gidIn.x + col]);
+            // Must clamp range to (-15, 15) to avoid tanh overflow while using fast math
+            float sum = clamp(output[idx] + bi[gidIn.x + col], -15.0f, 15.0f);
+            output[idx] = tanh(sum);
         }
     }
 }
