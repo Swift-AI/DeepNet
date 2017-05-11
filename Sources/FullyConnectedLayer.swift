@@ -180,8 +180,8 @@ public extension FullyConnectedLayer {
         var dims = MetalMatrixDimensions(m: UInt32(input.dimensions[0]), // num batches
                                          k: UInt32(weights.dimensions[1]), // num outputs
                                          n: UInt32(input.dimensions[1]), // num inputs
-                                         pbytes: UInt32(input.dimensions[1] * MemoryLayout<Float>.stride),
-                                         qbytes: UInt32(weights.dimensions[1] * MemoryLayout<Float>.stride))
+                                         pbytes: UInt32(input.paddedDimensions[1] * MemoryLayout<Float>.stride),
+                                         qbytes: UInt32(weights.paddedDimensions[1] * MemoryLayout<Float>.stride))
         let dimsBuffer = device.makeBuffer(bytes: &dims,
                                            length: MemoryLayout<MetalMatrixDimensions>.stride,
                                            options: .storageModeManaged)
@@ -195,9 +195,9 @@ public extension FullyConnectedLayer {
         // Note: Here we ensure that group height/width never equal zero (for output matrix with < 8 rows or columns)
         // We divide by 8 in both dimensions to account for the matrix multiplication kernel,
         // which operates on an 8x8 sector per thread.
-        let minWidth = ceil(Double(weights.dimensions[1]) / 8)
+        let minWidth = ceil(Double(weights.paddedDimensions[1]) / 8)
         let groupWidth = (Int(minWidth) + w - 1) / w
-        let groupHeight = Int(ceil(Double(input.dimensions[0]) / 8))
+        let groupHeight = Int(ceil(Double(input.paddedDimensions[0]) / 8))
         let threadgroupsPerGrid = MTLSize(width: groupWidth,
                                           height: groupHeight,
                                           depth: 1)

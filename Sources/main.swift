@@ -11,12 +11,12 @@ import Metal
 
 // Number of inputs to the neural network.
 let inputCount = 65_536
-let hiddenCount = 16_384
+let hiddenCount = 4096
 let outputCount = 1000
 /// Number of input sets per batch.
 let batchSize = 8
 /// Number of runs per test (to average execution times).
-let runs = 10
+let runs = 5
 
 
 
@@ -45,9 +45,6 @@ print("Creating neural network...")
 var net = DeepNet(inputs: inputCount)
 net.batchSize = batchSize
 try net.addFullyConnectedLayer(outputs: hiddenCount, activation: .tanh, weights: weights1, bias: bias1)
-//for _ in 0..<8 {
-//    try net.addFullyConnectedLayer(outputs: hiddenCount, activation: .tanh, weights: weights3, bias: bias3)
-//}
 try net.addFullyConnectedLayer(outputs: outputCount, activation: .tanh, weights: weights2, bias: bias2)
 
 
@@ -57,11 +54,23 @@ print("Running inference speed test...")
 // Note: Here we use the 'out' variable to cause side effects in the loop, so the compiler doesn't optimize them away.
 // We also log it at the end - the result is meaningless but ensures the loop was executed fully.
 
+//func printOut(_ matrix: [Float], dimensions: [Int]) {
+//    for row in 0..<dimensions[0] {
+//        for col in 0..<dimensions[1] {
+//            let idx = row * dimensions[1] + col
+//            print(matrix[idx], separator: "", terminator: "\t")
+//        }
+//        print()
+//    }
+//}
+
+
 var out: Float = 0
 var avgTime: Double = 0
 for _ in 0..<runs {
     let start = CACurrentMediaTime()
     let output = try! net.forward(inputs)
+//    printOut(output, dimensions: [batchSize + 7, hiddenCount + 3])
     out += output[0] // Cause side effect
     let end = CACurrentMediaTime()
     avgTime += (end - start)
